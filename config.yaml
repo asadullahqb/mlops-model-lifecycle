@@ -1,0 +1,54 @@
+# MLOps model lifecycle configuration.
+#
+# Paths are resolved relative to this file. The data source, model type,
+# key metric and all thresholds are pluggable from here -- swap them without
+# touching code.
+
+data:
+  source: data/dataset.csv          # path to the (growing) dataset CSV
+  target: target                    # name of the label column
+  features: null                    # null => every column except `target`
+  n_samples: 1000                   # only used when generating the bundled dataset
+  seed: 42
+  refresh:
+    batch_size: 200                 # rows appended per refresh cycle
+    seed: 7
+  drift:
+    enabled: false                  # flip to true (or pass --inject-drift) to inject a shift
+    shifted_features: all           # "all" or a list of column names
+    shift_magnitude: 3.0
+
+model:
+  type: sklearn.ensemble.GradientBoostingRegressor
+  params:
+    n_estimators: 200
+    max_depth: 3
+    learning_rate: 0.05
+    random_state: 42
+  test_size: 0.2
+
+metric:
+  name: r2                          # key metric used for promotion decisions
+  threshold: 0.5                    # minimum acceptable R2 before flagging quality drift
+
+drift:
+  model_quality:
+    enabled: true
+    threshold: 0.5
+  data:
+    enabled: true
+    method: psi
+    psi_threshold: 0.25
+
+registry:
+  dir: models                       # versioned model registry
+
+runs:
+  dir: runs                         # audit trail of orchestration events
+
+scheduler:
+  interval_minutes: 5               # cadence of the scheduler service
+
+serve:
+  host: 0.0.0.0
+  port: 8000

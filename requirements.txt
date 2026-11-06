@@ -1,0 +1,8 @@
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29
+scikit-learn>=1.4
+pandas>=2.0
+numpy>=1.26
+PyYAML>=6.0
+APScheduler>=3.10,<4.0
+joblib>=1.3

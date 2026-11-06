@@ -1,0 +1,28 @@
+services:
+  serve:
+    build: .
+    image: mlops-model-lifecycle:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./runs:/app/runs
+    command: ["uvicorn", "src.serve:app", "--host", "0.0.0.0", "--port", "8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  scheduler:
+    build: .
+    image: mlops-model-lifecycle:latest
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./runs:/app/runs
+    command: ["python", "-m", "src.orchestrate", "--loop"]
+    depends_on:
+      serve:
+        condition: service_healthy
